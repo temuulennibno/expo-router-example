@@ -1,37 +1,55 @@
-import { useRouter, useSearchParams } from "expo-router";
+import { useRouter, useGlobalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
 import { AntDesign } from "@expo/vector-icons";
+import axios from "axios";
 
 const CatDetails = () => {
   const [cat, setCat] = useState(null);
   const [image, setImage] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { id } = useSearchParams();
+  const { id } = useGlobalSearchParams();
   const router = useRouter();
 
   useEffect(() => {
-    fetch(`https://api.thecatapi.com/v1/breeds/${id}`)
-      .then((response) => response.json())
-      .then((json) => {
-        setCat(json);
-        setIsLoading(false);
-      })
-      .catch((error) => console.error(error));
-  }, []);
+    if (id) {
+      axios
+        .get(`https://api.thecatapi.com/v1/breeds/${id}`)
+        .then(({ data }) => {
+          setCat(data);
+        })
+        .catch((err) => {
+          console.error(err.message);
+        });
+    }
+  }, [id]);
 
   useEffect(() => {
     if (cat) {
-      fetch(`https://api.thecatapi.com/v1/images/${cat.reference_image_id}`)
-        .then((response) => response.json())
-        .then((data) => {
+      axios
+        .get(`https://api.thecatapi.com/v1/images/${cat.reference_image_id}`)
+        .then(({ data }) => {
           setImage(data.url);
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
     }
   }, [cat]);
 
   if (isLoading) {
-    return <Text>Loading...</Text>;
+    return (
+      <View style={{ flex: 1 }}>
+        <Text>Loading...</Text>
+      </View>
+    );
   }
 
   return (
@@ -53,13 +71,13 @@ const CatDetails = () => {
       >
         <AntDesign name="arrowleft" size={24} color="black" />
       </TouchableOpacity>
-      <View>
-        <Image style={{ width: "100%", height: 300 }} source={{ uri: image }} />
+      <ScrollView>
+        <Image style={{ width: "100%", height: 500 }} source={{ uri: image }} />
         <Text style={styles.name}>Name: {cat.name}</Text>
         <Text style={styles.text}>Origin: {cat.origin}</Text>
         <Text style={styles.text}>Temperament: {cat.temperament}</Text>
         <Text style={styles.text}>Description: {cat.description}</Text>
-      </View>
+      </ScrollView>
     </View>
   );
 };

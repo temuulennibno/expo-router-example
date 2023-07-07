@@ -1,4 +1,5 @@
-import { Link, Stack } from "expo-router";
+import axios from "axios";
+import { Link } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -6,16 +7,16 @@ const Dogs = () => {
   const [dogs, setDogs] = useState([]);
 
   useEffect(() => {
-    fetch("https://api.thedogapi.com/v1/breeds?limit=20")
-      .then((response) => response.json())
-      .then((json) => {
-        setDogs(json);
+    axios
+      .get("https://api.thedogapi.com/v1/breeds?limit=20")
+      .then(({ data }) => {
+        setDogs(data);
       })
       .catch((error) => console.error(error));
   }, []);
 
   const renderItem = ({ item }) => (
-    <Link href={`/dogs/${item.id}`} asChild>
+    <Link href={`/dogs/${item.id}?withoutImage=true`} asChild>
       <Pressable style={styles.itemContainer}>
         <View style={styles.textContainer}>
           <Text style={styles.nameText}>{item.name}</Text>

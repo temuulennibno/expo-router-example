@@ -1,37 +1,58 @@
-import { useRouter, useSearchParams } from "expo-router";
+import { useRouter, useGlobalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
 import { AntDesign } from "@expo/vector-icons";
+import axios from "axios";
 
 const DogDetails = () => {
   const [dog, setDog] = useState(null);
   const [image, setImage] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { id } = useSearchParams();
+  const { id, withoutImage } = useGlobalSearchParams();
   const router = useRouter();
 
   useEffect(() => {
-    fetch(`https://api.thedogapi.com/v1/breeds/${id}`)
-      .then((response) => response.json())
-      .then((json) => {
-        setDog(json);
-        setIsLoading(false);
-      })
-      .catch((error) => console.error(error));
-  }, []);
+    if (id) {
+      axios
+        .get(`https://api.thedogapi.com/v1/breeds/${id}`)
+        .then(({ data }) => {
+          setDog(data);
+        })
+        .catch((err) => {
+          console.log("Error:", err.message);
+        });
+    }
+    if (withoutImage) {
+      console.log("withoutImage:", withoutImage);
+    }
+  }, [id, withoutImage]);
 
   useEffect(() => {
     if (dog) {
-      fetch(`https://api.thedogapi.com/v1/images/${dog.reference_image_id}`)
-        .then((response) => response.json())
-        .then((data) => {
+      axios
+        .get(`https://api.thedogapi.com/v1/images/${dog.reference_image_id}`)
+        .then(({ data }) => {
           setImage(data.url);
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
     }
   }, [dog]);
 
   if (isLoading) {
-    return <Text>Loading...</Text>;
+    return (
+      <View style={{ flex: 1 }}>
+        <Text>Loading...</Text>
+      </View>
+    );
   }
 
   return (
@@ -53,13 +74,13 @@ const DogDetails = () => {
       >
         <AntDesign name="arrowleft" size={24} color="black" />
       </TouchableOpacity>
-      <View>
-        <Image style={{ width: "100%", height: 300 }} source={{ uri: image }} />
+      <ScrollView>
+        <Image style={{ width: "100%", height: 600 }} source={{ uri: image }} />
         <Text style={styles.name}>Name: {dog.name}</Text>
         <Text style={styles.text}>Origin: {dog.origin}</Text>
         <Text style={styles.text}>Temperament: {dog.temperament}</Text>
         <Text style={styles.text}>Description: {dog.description}</Text>
-      </View>
+      </ScrollView>
     </View>
   );
 };

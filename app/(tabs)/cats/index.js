@@ -1,15 +1,23 @@
-import { Link, Stack } from "expo-router";
+import axios from "axios";
+import { Link } from "expo-router";
 import { useEffect, useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 const Cats = () => {
   const [cats, setCats] = useState([]);
 
   useEffect(() => {
-    fetch("https://api.thecatapi.com/v1/breeds?limit=20")
-      .then((response) => response.json())
-      .then((json) => {
-        setCats(json);
+    axios
+      .get("https://api.thecatapi.com/v1/breeds?limit=20")
+      .then(({ data }) => {
+        setCats(data);
       })
       .catch((error) => console.error(error));
   }, []);
@@ -26,6 +34,7 @@ const Cats = () => {
 
   return (
     <View>
+      <TextInput />
       <FlatList
         data={cats}
         keyExtractor={({ id }) => id}
